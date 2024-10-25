@@ -28,12 +28,16 @@ async function run() {
     await client.connect();
 
     const database = client.db("quickFix");
-    const reviewsCollection = database.collection("reviews");
+    const reviewCollection = database.collection("reviews");
     const shopCollection = database.collection("shop");
 
     app.get('/shop', async (req, res) => {
-        const shop = await shopCollection.find().toArray();
-        res.json(shop);
+        const result = await shopCollection.find().toArray();
+        res.json(result);
+    })
+    app.get('/reviews', async (req, res) => {
+        const result = await reviewCollection.find().toArray();
+        res.json(result);
     })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
