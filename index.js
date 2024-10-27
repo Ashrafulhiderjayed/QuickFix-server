@@ -28,9 +28,26 @@ async function run() {
     await client.connect();
 
     const database = client.db("quickFix");
+
+    const userCollection = client.db("bistroDb").collection("users");
     const reviewCollection = database.collection("reviews");
     const shopCollection = database.collection("shop");
 
+    //users related api ===============================
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query);
+
+      //insert email if user does not exist
+      if (existingUser) {
+        return res.send({ message: "User already exists with this email", insertedId: null });
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
+
+    //shop related api ===============================
     app.get('/shop', async (req, res) => {
         const result = await shopCollection.find().toArray();
         res.json(result);
