@@ -31,6 +31,7 @@ async function run() {
 
     const userCollection = client.db("bistroDb").collection("users");
     const reviewCollection = database.collection("reviews");
+    const cartCollection = database.collection("cart");
     const shopCollection = database.collection("shop");
 
     //users related api ===============================
@@ -56,6 +57,51 @@ async function run() {
         const result = await reviewCollection.find().toArray();
         res.json(result);
     })
+
+
+    // cart collection =============================
+    app.post('/carts', async (req, res) => {
+      const cartItem = req.body;
+      const result = await cartCollection.insertOne(cartItem);
+      res.send(result);
+    })
+
+        //users related api ===============================
+        app.get("/users", async (req, res) => {
+          // console.log(req.headers);
+          const result = await userCollection.find().toArray();
+          res.send(result);
+        })
+    
+        app.get('/users/admin/:email', async (req, res) => {
+          const email = req.params.email;
+          if (email !== req.decoded.email) {
+            return res.status(403).send({ message: 'unauthorized access' });
+          }
+    
+          const query = { email: email };
+          const user = await userCollection.findOne(query);
+          let admin = false;
+          if (user) {
+            admin = user?.role === 'admin'
+          }
+          res.send({ admin });
+        })
+    
+        app.post('/users', async (req, res) => {
+          const user = req.body;
+          const query = { email: user.email };
+          const existingUser = await userCollection.findOne(query);
+    
+          //insert email if user does not exist
+          if (existingUser) {
+            return res.send({ message: "User already exists with this email", insertedId: null });
+          }
+          const result = await userCollection.insertOne(user);
+          res.send(result);
+        })
+
+        
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
