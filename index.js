@@ -1,6 +1,6 @@
-const express = require('express'); 
+const express = require('express');
 const cors = require('cors');
-require ('dotenv').config()
+require('dotenv').config()
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -50,19 +50,21 @@ async function run() {
 
     //shop related api ===============================
     app.get('/shop', async (req, res) => {
-        const result = await shopCollection.find().toArray();
-        res.json(result);
+      const result = await shopCollection.find().toArray();
+      res.json(result);
     })
     app.get('/reviews', async (req, res) => {
-        const result = await reviewCollection.find().toArray();
-        res.json(result);
+      const result = await reviewCollection.find().toArray();
+      res.json(result);
     })
 
 
     // cart collection =============================
     app.get('/carts', async (req, res) => {
-        const result = await cartCollection.find().toArray();
-        res.json(result);
+      const email = req.query.email;
+      const query = { email: email };
+      const result = await cartCollection.find(query).toArray();
+      res.json(result);
     });
 
     app.post('/carts', async (req, res) => {
@@ -71,42 +73,42 @@ async function run() {
       res.send(result);
     })
 
-        //users related api ===============================
-        app.get("/users", async (req, res) => {
-          // console.log(req.headers);
-          const result = await userCollection.find().toArray();
-          res.send(result);
-        })
-    
-        app.get('/users/admin/:email', async (req, res) => {
-          const email = req.params.email;
-          if (email !== req.decoded.email) {
-            return res.status(403).send({ message: 'unauthorized access' });
-          }
-    
-          const query = { email: email };
-          const user = await userCollection.findOne(query);
-          let admin = false;
-          if (user) {
-            admin = user?.role === 'admin'
-          }
-          res.send({ admin });
-        })
-    
-        app.post('/users', async (req, res) => {
-          const user = req.body;
-          const query = { email: user.email };
-          const existingUser = await userCollection.findOne(query);
-    
-          //insert email if user does not exist
-          if (existingUser) {
-            return res.send({ message: "User already exists with this email", insertedId: null });
-          }
-          const result = await userCollection.insertOne(user);
-          res.send(result);
-        })
+    //users related api ===============================
+    app.get("/users", async (req, res) => {
+      // console.log(req.headers);
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    })
 
-        
+    app.get('/users/admin/:email', async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: 'unauthorized access' });
+      }
+
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === 'admin'
+      }
+      res.send({ admin });
+    })
+
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query);
+
+      //insert email if user does not exist
+      if (existingUser) {
+        return res.send({ message: "User already exists with this email", insertedId: null });
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
+
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
@@ -118,9 +120,9 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-    res.send("Hello from QuickFix Motors Server");
+  res.send("Hello from QuickFix Motors Server");
 });
 
-app.listen(port, () =>{
-    console.log(`QuickFix Motors Server listening on port ${port}`);
+app.listen(port, () => {
+  console.log(`QuickFix Motors Server listening on port ${port}`);
 })
