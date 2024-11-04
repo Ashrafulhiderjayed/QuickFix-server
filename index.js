@@ -82,10 +82,15 @@ async function run() {
 
     //users related api ===============================
     app.get("/users", async (req, res) => {
-      // console.log(req.headers);
+      // const user = req.body;
       const result = await userCollection.find().toArray();
       res.send(result);
     })
+    // app.get("/users", async (req, res) => {
+    //   const user = req.body;
+    //   const result = await userCollection.findOne(user).toArray();
+    //   res.send(result);
+    // })
 
     // app.get('/users/admin/:email', async (req, res) => {
     //   const email = req.params.email;
@@ -112,6 +117,13 @@ async function run() {
         return res.send({ message: "User already exists with this email", insertedId: null });
       }
       const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
+
+    app.delete('/users/:id', verifyAdmin, verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
       res.send(result);
     })
 
