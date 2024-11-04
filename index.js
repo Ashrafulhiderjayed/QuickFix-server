@@ -71,7 +71,14 @@ async function run() {
       const cartItem = req.body;
       const result = await cartCollection.insertOne(cartItem);
       res.send(result);
-    })
+    });
+
+    app.delete('/carts/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await cartCollection.deleteMany(query);
+      res.send(result);
+    });
 
     //users related api ===============================
     app.get("/users", async (req, res) => {
@@ -80,20 +87,20 @@ async function run() {
       res.send(result);
     })
 
-    app.get('/users/admin/:email', async (req, res) => {
-      const email = req.params.email;
-      if (email !== req.decoded.email) {
-        return res.status(403).send({ message: 'unauthorized access' });
-      }
+    // app.get('/users/admin/:email', async (req, res) => {
+    //   const email = req.params.email;
+    //   if (email !== req.decoded.email) {
+    //     return res.status(403).send({ message: 'unauthorized access' });
+    //   }
 
-      const query = { email: email };
-      const user = await userCollection.findOne(query);
-      let admin = false;
-      if (user) {
-        admin = user?.role === 'admin'
-      }
-      res.send({ admin });
-    })
+    //   const query = { email: email };
+    //   const user = await userCollection.findOne(query);
+    //   let admin = false;
+    //   if (user) {
+    //     admin = user?.role === 'admin'
+    //   }
+    //   res.send({ admin });
+    // })
 
     app.post('/users', async (req, res) => {
       const user = req.body;
