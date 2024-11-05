@@ -119,6 +119,13 @@ async function run() {
       res.send(result);
     })
 
+    app.delete('/users/:id', verifyAdmin, verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await userCollection.deleteOne(query);
+      res.send(result);
+    })
+
     //shop related api ===============================
     app.get('/shop', async (req, res) => {
       const result = await shopCollection.find().toArray();
