@@ -30,7 +30,7 @@ async function run() {
 
     const database = client.db("quickFix");
 
-    const userCollection = client.db("bistroDb").collection("users");
+    const userCollection = database.collection("usersInfo");
     const reviewCollection = database.collection("reviews");
     const cartCollection = database.collection("cart");
     const shopCollection = database.collection("shop");
