@@ -131,6 +131,14 @@ async function run() {
       const result = await shopCollection.find().toArray();
       res.json(result);
     })
+
+    app.post('/shop', verifyToken, verifyAdmin, async (req, res) => {
+      const item = req.body;
+      const result = await shopCollection.insertOne(item);
+      res.send(result);
+    });
+
+    //reviews collection =============================
     app.get('/reviews', async (req, res) => {
       const result = await reviewCollection.find().toArray();
       res.json(result);
