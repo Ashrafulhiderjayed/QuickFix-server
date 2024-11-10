@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -132,6 +133,36 @@ async function run() {
       res.json(result);
     })
 
+    app.get('/shop/:id', async (req, res) => {
+      const id = req.params.id;
+
+      // Check if the provided ID is a valid ObjectId
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).send({ error: 'Invalid ID format' });
+      }
+
+      try {
+        // Try to find the document by ObjectId
+        let query = { _id: new ObjectId(id) };
+        let result = await shopCollection.findOne(query);
+
+        // If not found, try to find by string ID
+        if (!result) {
+          query = { _id: id };
+          result = await shopCollection.findOne(query);
+        }
+
+        if (!result) {
+          return res.status(404).send({ message: 'Menu item not found' });
+        }
+
+        res.send(result);
+      } catch (error) {
+        console.error('Error fetching menu item:', error);
+        res.status(500).send({ error: 'An error occurred while fetching the menu item' });
+      }
+    });
+
     app.post('/shop', verifyToken, verifyAdmin, async (req, res) => {
       const item = req.body;
       const result = await shopCollection.insertOne(item);
@@ -168,6 +199,23 @@ async function run() {
       const result = await reviewCollection.find().toArray();
       res.json(result);
     })
+
+    // payment intent related api =============================
+    app.post('/create-payment-intent', async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+      // console.log(amount, 'amount inside the intent')
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    });
 
 
     // cart collection =============================

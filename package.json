@@ -16,6 +16,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.9.0"
+    "mongodb": "^6.9.0",
+    "stripe": "^17.3.1"
   }
 }
