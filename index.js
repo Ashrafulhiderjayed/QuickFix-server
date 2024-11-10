@@ -35,6 +35,7 @@ async function run() {
     const reviewCollection = database.collection("reviews");
     const cartCollection = database.collection("cart");
     const shopCollection = database.collection("shop");
+    const paymentCollection = database.collection("payments");
 
     //jwt related api ===============================
     app.post('/jwt', async (req, res) => {
@@ -201,6 +202,17 @@ async function run() {
     })
 
     // payment intent related api =============================
+
+    app.get('/payments/:email', verifyToken, async (req, res) => {
+      const query = { email: req.params.email }
+      if (req.params.email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      const result = await paymentCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    
     app.post('/create-payment-intent', async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
