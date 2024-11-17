@@ -328,7 +328,7 @@ async function run() {
     // Stats or Analytics
     app.get('/admin-stats', verifyToken, verifyAdmin, async (req, res) => {
       const users = await userCollection.estimatedDocumentCount();
-      const menuItems = await menuCollection.estimatedDocumentCount();
+      const shopItems = await shopCollection.estimatedDocumentCount();
       const orders = await paymentCollection.estimatedDocumentCount();
 
       const payments = await paymentCollection.find().toArray();
@@ -344,7 +344,7 @@ async function run() {
       const revenue = result.length > 0 ? result[0].totalRevenue : 0;
       res.send({
         users,
-        menuItems,
+        shopItems,
         orders,
         revenue,
       });
