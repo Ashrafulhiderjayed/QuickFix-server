@@ -32,6 +32,8 @@ async function run() {
     const database = client.db("quickFix");
 
     const userCollection = database.collection("usersInfo");
+    const serviceCollection = database.collection('services');
+    const bookingCollection = database.collection('bookings');
     const reviewCollection = database.collection("reviews");
     const cartCollection = database.collection("cart");
     const shopCollection = database.collection("shop");
@@ -212,7 +214,7 @@ async function run() {
       res.send(result);
     })
 
-    
+
     app.post('/create-payment-intent', async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
@@ -325,7 +327,44 @@ async function run() {
       res.send(result);
     })
 
-    // Stats or Analytics
+    //services api =================================================================
+    app.get('/services', async(req, res) =>{
+      const cursor = serviceCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+      // console.log(result)
+    })
+
+    app.get('/service/:id', async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)};
+      const options = {
+        projection: {title: 1, top: 1, description: 1, detailDescription: 1, img: 1},
+      };
+      const result = await serviceCollection.findOne(query, options);
+      res.send(result);
+    });
+
+    // appointment =================================================================
+    app.get('/appointments', async(req, res) => {
+      const result = await bookingCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post('/appointments', verifyToken, async(req, res) =>{
+      const booking = req.body;
+      const result = await bookingCollection.insertOne(booking);
+      res.send(result);
+    });
+
+    app.delete('/appointments/:id', verifyToken, verifyAdmin, async(req, res) =>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    // Stats or Analytics  =================================================================
     app.get('/admin-stats', verifyToken, verifyAdmin, async (req, res) => {
       const users = await userCollection.estimatedDocumentCount();
       const shopItems = await shopCollection.estimatedDocumentCount();
@@ -349,6 +388,47 @@ async function run() {
         revenue,
       });
     })
+
+    //order status using aggregation pipeline
+     app.get('/order-stats',  async (req, res) => {
+      const result = await paymentCollection.aggregate([
+        {
+          $unwind: '$menuItemIds'
+        },
+        {
+          $lookup:{
+            from: 'shop',
+            localField: 'menuItemIds',
+            foreignField: '_id',
+            as: 'menuItems'
+          }
+        },
+        {
+          $unwind: '$menuItems'
+        },
+        {
+          $group: {
+            _id: '$menuItems.category',
+            quantity: { $sum: 1 },
+            revenue: {$sum: '$menuItems.price'}
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            category: '$_id',
+            quantity: '$quantity',
+            revenue: '$revenue'
+          }
+        }
+      ]).toArray();
+      res.send(result);
+    })
+    
+
+
+   
+
 
 
     // Send a ping to confirm a successful connection
