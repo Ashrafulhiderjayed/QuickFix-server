@@ -351,6 +351,15 @@ async function run() {
       res.send(result);
     });
 
+    app.get('/appointments/:email', verifyToken, async (req, res) => {
+      const query = { email: req.params.email }
+      if (req.params.email !== req.decoded.email) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      const result = await bookingCollection.find(query).toArray();
+      res.send(result);
+    })
+
     app.post('/appointments', verifyToken, async(req, res) =>{
       const booking = req.body;
       const result = await bookingCollection.insertOne(booking);
